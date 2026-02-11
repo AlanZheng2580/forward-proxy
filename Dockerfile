@@ -2,8 +2,9 @@
 FROM alpine:latest
 
 # Set Nginx version and module version
-ARG NGINX_VERSION=1.24.0
-ARG NGINX_CONNECT_MODULE_VERSION=v0.0.3
+ARG NGINX_VERSION=1.27.1
+ARG NGINX_CONNECT_MODULE_VERSION=0.0.7
+ARG NGINX_CONNECT_MODULE_VERSION_V=v0.0.7
 
 # Install build dependencies and apache2-utils
 RUN apk add --no-cache \
@@ -24,11 +25,11 @@ RUN curl -fSL http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz -o nginx.t
     && rm nginx.tar.gz
 
 # Download ngx_http_proxy_connect_module source
-RUN curl -fSL https://github.com/chobits/ngx_http_proxy_connect_module/archive/${NGINX_CONNECT_MODULE_VERSION}.tar.gz -o ngx_http_proxy_connect_module.tar.gz     && tar -zxvf ngx_http_proxy_connect_module.tar.gz     && rm ngx_http_proxy_connect_module.tar.gz
+RUN curl -fSL https://github.com/chobits/ngx_http_proxy_connect_module/archive/${NGINX_CONNECT_MODULE_VERSION_V}.tar.gz -o ngx_http_proxy_connect_module.tar.gz     && tar -zxvf ngx_http_proxy_connect_module.tar.gz     && rm ngx_http_proxy_connect_module.tar.gz
 
 # Apply patch for ngx_http_proxy_connect_module
 WORKDIR /usr/src/nginx-${NGINX_VERSION}
-RUN patch -p1 < ../ngx_http_proxy_connect_module-0.0.3/patch/proxy_connect_rewrite_102101.patch
+RUN patch -p1 < ../ngx_http_proxy_connect_module-${NGINX_CONNECT_MODULE_VERSION}/patch/proxy_connect_rewrite_102101.patch
 RUN ./configure \
     --prefix=/etc/nginx \
     --sbin-path=/usr/sbin/nginx \
@@ -60,7 +61,7 @@ RUN ./configure \
     --with-stream \
     --with-stream_ssl_module \
     --with-stream_realip_module \
-    --add-module=../ngx_http_proxy_connect_module-0.0.3 \
+    --add-module=../ngx_http_proxy_connect_module-${NGINX_CONNECT_MODULE_VERSION} \
     && make \
     && make install \
     && rm -rf /usr/src/nginx-${NGINX_VERSION} \
